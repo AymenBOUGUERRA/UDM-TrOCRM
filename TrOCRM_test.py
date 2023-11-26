@@ -13,6 +13,9 @@ import cv2
 from transformers import TrOCRProcessor, Seq2SeqTrainer, Seq2SeqTrainingArguments, VisionEncoderDecoderModel, default_data_collator
 import tensorflow as tf
 import numpy as np
+from tqdm import tqdm
+from datasets import load_metric
+
 import re
 from itertools import product
 # Extract the data if not already done
@@ -227,4 +230,5 @@ for i, ix in enumerate(random_indices):
 fig.suptitle('Model prediction for the same inputs from the with-noise test set', fontsize=27)
 plt.tight_layout()
 plt.show()
+
 

@@ -53,7 +53,7 @@ An Nvidia GPU will be needed.
 
 - Pre-trained models (optional):
 
-  - UDM model! https://drive.google.com/file/d/1SUPXum816XnfmNEsQyiuEU2XnLHm5cX5/view?usp=sharing
+  - UDM model https://drive.google.com/file/d/1SUPXum816XnfmNEsQyiuEU2XnLHm5cX5/view?usp=sharing
   - TrOCRM model: https://drive.google.com/file/d/1GLRs74S7dMqal0YG7yNOKTv6nSLud3Nt/view?usp=sharing
 
 
@@ -80,6 +80,8 @@ Warning: TrOCR models have a large volume, make use to have the necessary space 
 - You can test the models using the ```UDM_testing.py``` and ```TrOCRM_test.py``` scripts.
 
 
+- You can compute the scores the TrOCRM model using the ```TrOCRM_score.py``` script.
+
 ## Results
 
 On random images from the test sets: (not even loaded during training).
@@ -87,26 +89,35 @@ On random images from the test sets: (not even loaded during training).
   - Example UDM training image:
   ![Example UDM training image](images_read_me/img1.png)
 
-  - Example UDM de-noising:
-  ![Example UDM training image](images_read_me/3.png)
+  - Multiple example of UDM de-noising:
 
-  ![Example UDM training image](images_read_me/4.png)
+![Example UDM training image](images_read_me/3.png)
 
-  ![Example UDM training image](images_read_me/5.png)
+![Example UDM training image](images_read_me/4.png)
+
+![Example UDM training image](images_read_me/5.png)
 
 - TrOCR:
 
-  -Example UDM training image
+  - Multiple examples of the model's predictions on random input images from the test set with no noise:
 
-  ![Example UDM training image](images_read_me/7.png)
+![Multiple examples of the model's predictions on random input images from the test set with no noise](images_read_me/7.png)
 
-  -Example UDM training image
+  - Multiple examples of the model's predictions on random input images from the test set with noise:
 
-  ![Example UDM training image](images_read_me/8.png)
+![Multiple examples of the model's predictions on random input images from the test set with noise](images_read_me/8.png)
 
-  -Example UDM training image
+  - Multiple examples of the model's predictions on random input images from the test set with noise the were de-noised
+with UDM before the inference:
 
-![Example UDM training image](images_read_me/9.png)
+![Multiple examples of the model's predictions on random input images from the test set with noise the were de-noised
+with UDM before the inference](images_read_me/9.png)
+
+
+- Exact Match rate (Exp Rate) on noised test set: 0.4%  with a Character Error Rate (CER) of 76.6%
+
+
+- Exact Match rate (Exp Rate) on clear test set: 26.3% with a Character Error Rate (CER) of 32.2%
 
 
 

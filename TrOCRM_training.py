@@ -94,7 +94,7 @@ eval_dataset = IAMDataset(root_dir= output_folder + '2014/',
                            processor=processor)
 
 eval_dataset_noise = IAMDataset(root_dir= output_folder_2 + 'images_test/',
-                           df=test_df,
+                           df=test_df_noise,
                            processor=processor)
 print("Number of training examples:", len(train_dataset))
 print("Number of validation examples:", len(eval_dataset))

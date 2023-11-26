@@ -235,7 +235,7 @@ history = model.fit(
     X_train, Y_train,
     validation_split=0.07,
     batch_size=16,
-    epochs=7,
+    epochs=27,
     verbose=1,
     callbacks=[early_stopping, model_checkpoint]
 )
