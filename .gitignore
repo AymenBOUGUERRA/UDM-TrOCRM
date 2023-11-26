@@ -1,0 +1,68 @@
+# Ignore compiled files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Ignore virtual environment
+venv/
+env/
+
+
+TrOCRM_clear_data.rar
+TrOCRM_noise_data.rar
+data_unet_grey_interline_noise.rar
+
+U-net_data/
+TrOCRM_noise_data/
+TrOCRM_models/
+TrOCRM_clear_data/
+my_models_savedmodel/
+model_unet_checkpoint_savedmodel/
+
+
+# Ignore log files
+*.log
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore system and temporary files
+.DS_Store
+Thumbs.db
+
+# Ignore user-specific files
+*.sublime-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore environment-specific files
+.env
+/.env
+
+# Ignore IDE-specific files and directories
+.idea/
+.vscode/
+
+# Ignore data files
+data/
+*.csv
+*.xlsx
+
+# Ignore compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore package files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Ignore local configuration
+*.config
+*.conf
