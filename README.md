@@ -128,4 +128,4 @@ This project is licensed under the MIT License.
 ## Acknowledgments
 
 - The research summarized in this article is part of the EU-fundend project IMEDiL (Inclusive Mathematics Education based on Digital Learning).
-- Francesco Salvarani & Christophe Rodrigues for the help and guidance during this research and implementation.
+- Francesco Salvarani & Christophe Rodrigues from the DVRC for the help and guidance during this research and implementation.
