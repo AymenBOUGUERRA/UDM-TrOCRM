@@ -28,8 +28,8 @@ else:
 
 
 # Set some parameters
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 IMG_CHANNELS = 1
 
 TEST_PATH = 'U-net_data/test/images_test/'

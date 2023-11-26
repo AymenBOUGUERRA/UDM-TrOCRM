@@ -49,8 +49,8 @@ else:
 
 
 # Set some parameters
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 TRAIN_PATH = 'U-net_data/train/images_train/'
 TRAIN_PATH_masks = 'U-net_data/train/masks_train/'
 
@@ -234,8 +234,8 @@ model_checkpoint = ModelCheckpoint(
 history = model.fit(
     X_train, Y_train,
     validation_split=0.07,
-    batch_size=4,
-    epochs=27,
+    batch_size=16,
+    epochs=7,
     verbose=1,
     callbacks=[early_stopping, model_checkpoint]
 )

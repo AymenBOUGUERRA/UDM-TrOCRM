@@ -208,10 +208,10 @@ for i, ix in enumerate(random_indices):
     axes[i, 0].imshow(image)
     axes[i, 0].set_title('Input Image')
 
-    resized_image = resizeAndPad(image, (512, 512), 255)
+    resized_image = resizeAndPad(image, (256, 256), 255)
     image_gray = cv2.cvtColor(resized_image, cv2.COLOR_RGB2GRAY)
     _, image_black = cv2.threshold(image_gray, 70, 255, cv2.THRESH_BINARY)
-    image_array = np.zeros((32, 512, 512), dtype=np.uint8)
+    image_array = np.zeros((32, 256, 256), dtype=np.uint8)
     image_array[0] = image_black
     image_array = UDM.predict(image_array, verbose=1)
     image_array_th = (image_array > 0.5).astype(np.uint8)
