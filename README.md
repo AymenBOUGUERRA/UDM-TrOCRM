@@ -1,4 +1,12 @@
-# U-net De-noising model for Transformer Optical Recognition for Mathematical equations
+# Inclusive mathematics education based on digital learning
+Project Reference : 2021-1-FR01-KA220-HED-000023486.
+
+This work is part of the IMEDiL (Inclusive Mathematics Education based on Digital Learning) program that seeks to create digital tools to help and assist the impaired persue STEM education.
+
+![](images_read_me/Nome.jpg)
+![](images_read_me/Logo_Erasmus_2023.png)
+
+# U-net De-noising model for Transformer Optical Recognition for Mathematical equations.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/AymenBOUGUERRA/UDM-TrOCRM)](https://github.com/AymenBOUGUERRA/UDM-TrOCRM/issues)
@@ -87,7 +95,9 @@ Warning: TrOCR models have a large volume, make use to have the necessary space 
 On random images from the test sets: (not even loaded during training).
 - UDM:
   - Example UDM training image:
-  ![Example UDM training image](images_read_me/img1.png)
+ 
+  
+![Example UDM training image](images_read_me/img1.png)
 
   - Multiple example of UDM de-noising:
 
