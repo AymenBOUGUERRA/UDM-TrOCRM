@@ -4,9 +4,9 @@ import os
 import numpy as np
 
 # Assign input directory
-input_directory = '/input'
-output_directory_noisy = '/noisy'
-output_directory_clean = '/clean'
+input_directory = './images_dataset_creation/input_images'
+output_directory_noisy = './images_dataset_creation/noisy'
+output_directory_clean = './images_dataset_creation/clean'
 
 def resize_and_pad(img, size, pad_color):
     """
@@ -104,13 +104,13 @@ for filename in os.listdir(input_directory):
     img = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
     
     if rand == 2:
-        grid = cv2.imread('/french_grid.png', cv2.IMREAD_GRAYSCALE)
+        grid = cv2.imread('images_dataset_creation/French_grid.png', cv2.IMREAD_GRAYSCALE)
     elif rand == 3:
-        grid = cv2.imread('/lines_grid.png', cv2.IMREAD_GRAYSCALE)
+        grid = cv2.imread('images_dataset_creation/lines_grid.png', cv2.IMREAD_GRAYSCALE)
     elif rand == 4:
-        grid = cv2.imread('/standard_grid.png', cv2.IMREAD_GRAYSCALE)
+        grid = cv2.imread('images_dataset_creation/standard_grid.png', cv2.IMREAD_GRAYSCALE)
     else:
-        grid = cv2.imread('/no_grid.png', cv2.IMREAD_GRAYSCALE)
+        grid = cv2.imread('images_dataset_creation/no_grid.png', cv2.IMREAD_GRAYSCALE)
     
     process_image(img, grid, filename, index)
     index += 1
