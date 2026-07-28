@@ -1,5 +1,5 @@
 # Inclusive mathematics education based on digital learning
-Project Reference : 2021-1-FR01-KA220-HED-000023486.
+
 
 This work is part of the IMEDiL (Inclusive Mathematics Education based on Digital Learning) program that seeks to create digital tools to help and assist the impaired persuing STEM education.
 
