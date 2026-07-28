@@ -3,8 +3,8 @@ Project Reference : 2021-1-FR01-KA220-HED-000023486.
 
 This work is part of the IMEDiL (Inclusive Mathematics Education based on Digital Learning) program that seeks to create digital tools to help and assist the impaired persuing STEM education.
 
-![](images_read_me/Nome.jpg)
-![](images_read_me/Logo_Erasmus_2023.png)
+![](images_read_me/logo_imedil.jpg)
+![](images_read_me/logo_co_funded_eu.png)
 
 # U-net De-noising model for Transformer Optical Recognition for Mathematical equations.
 
@@ -123,31 +123,31 @@ On random images from the test sets: (not even loaded during training).
   - Example UDM training image:
  
   
-![Example UDM training image](images_read_me/img1.png)
+![Example UDM training image](images_read_me/udm_training_example.png)
 
   - Multiple example of UDM de-noising:
 
-![Example UDM training image](images_read_me/3.png)
+![Example of UDM de-noising](images_read_me/udm_denoising_example_1.png)
 
-![Example UDM training image](images_read_me/4.png)
+![Example of UDM de-noising](images_read_me/udm_denoising_example_2.png)
 
-![Example UDM training image](images_read_me/5.png)
+![Example of UDM de-noising](images_read_me/udm_denoising_example_3.png)
 
 - TrOCR:
 
   - Multiple examples of the model's predictions on random input images from the test set with no noise:
 
-![Multiple examples of the model's predictions on random input images from the test set with no noise](images_read_me/7.png)
+![Multiple examples of the model's predictions on random input images from the test set with no noise](images_read_me/trocr_predictions_clean.png)
 
   - Multiple examples of the model's predictions on random input images from the test set with noise:
 
-![Multiple examples of the model's predictions on random input images from the test set with noise](images_read_me/8.png)
+![Multiple examples of the model's predictions on random input images from the test set with noise](images_read_me/trocr_predictions_noisy.png)
 
   - Multiple examples of the model's predictions on random input images from the test set with noise the were de-noised
 with UDM before the inference:
 
 ![Multiple examples of the model's predictions on random input images from the test set with noise the were de-noised
-with UDM before the inference](images_read_me/9.png)
+with UDM before the inference](images_read_me/trocr_predictions_denoised.png)
 
 
 - Exact Match rate (Exp Rate) on noised test set: 0.4%  with a Character Error Rate (CER) of 76.6%
