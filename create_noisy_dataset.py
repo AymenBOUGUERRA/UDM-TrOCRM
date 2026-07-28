@@ -1,54 +1,14 @@
 import random
-import cv2
 import os
-import numpy as np
+
+import cv2
+
+from udm_common import resize_and_pad
 
 # Assign input directory
 input_directory = './images_dataset_creation/input_images'
 output_directory_noisy = './images_dataset_creation/noisy'
 output_directory_clean = './images_dataset_creation/clean'
-
-def resize_and_pad(img, size, pad_color):
-    """
-    Resizes the image to the desired size and pads the missing pixels to respect the initial aspect ratio.
-    
-    Args:
-        img (numpy.ndarray): Input image.
-        size (tuple): Desired size (width, height).
-        pad_color (int or tuple): Padding color, 0 to 255 in grayscale or a tuple for color images.
-    
-    Returns:
-        numpy.ndarray: Resized and padded image.
-    """
-    h, w = img.shape[:2]
-    sh, sw = size
-
-    # Choose interpolation method
-    interp = cv2.INTER_AREA if h > sh or w > sw else cv2.INTER_CUBIC
-
-    aspect = float(w) / h
-    saspect = float(sw) / sh
-
-    if saspect > aspect or (saspect == 1 and aspect <= 1):
-        new_h = sh
-        new_w = np.round(new_h * aspect).astype(int)
-        pad_horz = float(sw - new_w) / 2
-        pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
-        pad_top, pad_bot = 0, 0
-    else:
-        new_w = sw
-        new_h = np.round(float(new_w) / aspect).astype(int)
-        pad_vert = float(sh - new_h) / 2
-        pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
-        pad_left, pad_right = 0, 0
-
-    if len(img.shape) == 3 and not isinstance(pad_color, (list, tuple, np.ndarray)):
-        pad_color = [pad_color] * 3
-
-    scaled_img = cv2.resize(img, (new_w, new_h), interpolation=interp)
-    scaled_img = cv2.copyMakeBorder(scaled_img, pad_top, pad_bot, pad_left, pad_right, borderType=cv2.BORDER_CONSTANT, value=pad_color)
-
-    return scaled_img
 
 def add_noise(img):
     """
@@ -95,6 +55,9 @@ def process_image(img, grid, filename, index):
     cv2.imwrite(f'{output_directory_noisy}/{index}.png', black_and_white_image)
     cv2.imwrite(f'{output_directory_clean}/{index}.png', black_and_white_image_original)
     print(f"Processed {filename} and saved as {index}.png")
+
+os.makedirs(output_directory_noisy, exist_ok=True)
+os.makedirs(output_directory_clean, exist_ok=True)
 
 # Iterate over files in the input directory
 index = 0

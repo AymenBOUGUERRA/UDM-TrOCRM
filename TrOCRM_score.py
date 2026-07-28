@@ -1,23 +1,15 @@
 import os
-import sys
+
 import patoolib
-import random
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import torch
-from torch.utils.data import Dataset
-from PIL import Image
+from torch.utils.data import Dataset, DataLoader
 import cv2
-from transformers import TrOCRProcessor, Seq2SeqTrainer, Seq2SeqTrainingArguments, VisionEncoderDecoderModel, default_data_collator
-import tensorflow as tf
-import numpy as np
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from tqdm import tqdm
-from datasets import load_metric
+import jiwer
 
-import re
-from itertools import product
 # Extract the data if not already done
 rar_file_path = 'TrOCRM_clear_data.rar'
 output_folder = 'TrOCRM_clear_data/'
@@ -107,108 +99,59 @@ model_TrOCR = VisionEncoderDecoderModel.from_pretrained("TrOCRM_models/checkpoin
 model_TrOCR.config.decoder_start_token_id = processor.tokenizer.cls_token_id
 model_TrOCR.config.pad_token_id = processor.tokenizer.pad_token_id
 model_TrOCR.config.vocab_size = model_TrOCR.config.decoder.vocab_size
-
-print("Running evaluation...")
-
-total = 0
-pred_label = 0
-
-processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
-
-test_dataset = IAMDataset(root_dir= output_folder + '2014/',
-                           df=test_df,
-                           processor=processor)
-
-
-
-cer_metric = load_metric("cer")
-from torch.utils.data import DataLoader
-
-test_dataloader = DataLoader(test_dataset, batch_size=1)
-batch = next(iter(test_dataloader))
-for k,v in batch.items():
-  print(k, v.shape)
-
-labels = batch["labels"]
-labels[labels == -100] = processor.tokenizer.pad_token_id
-label_str = processor.batch_decode(labels, skip_special_tokens=True)
+model_TrOCR.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
+model_TrOCR.generation_config.pad_token_id = processor.tokenizer.pad_token_id
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_TrOCR.to(device)
 
 
-print("Running evaluation...")
+def evaluate(dataset, name):
+    """Compute the Exact Match rate and the Character Error Rate on a dataset.
 
-total = 0
-pred_label = 0
+    The CER comes from jiwer, called directly: `datasets.load_metric` was
+    removed from the `datasets` library.
+    """
+    dataloader = DataLoader(dataset, batch_size=1)
 
-for batch in tqdm(test_dataloader):
-    # predict using generate
-    pixel_values = batch["pixel_values"].to(device)
-    outputs = model_TrOCR.generate(pixel_values)
-    # decode
-    pred_str = processor.batch_decode(outputs, skip_special_tokens=True)
-    labels = batch["labels"]
-    labels[labels == -100] = processor.tokenizer.pad_token_id
-    label_str = processor.batch_decode(labels, skip_special_tokens=True)
+    predictions = []
+    references = []
 
-    if pred_str == label_str:
-        pred_label += 1
-    total += 1
+    print(f"Running evaluation on the {name} test set...")
+    for batch in tqdm(dataloader):
+        # predict using generate
+        pixel_values = batch["pixel_values"].to(device)
+        outputs = model_TrOCR.generate(pixel_values)
+        # decode
+        pred_str = processor.batch_decode(outputs, skip_special_tokens=True)
+        labels = batch["labels"]
+        labels[labels == -100] = processor.tokenizer.pad_token_id
+        label_str = processor.batch_decode(labels, skip_special_tokens=True)
 
-    cer_metric.add_batch(predictions=pred_str, references=label_str)
+        predictions.extend(pred_str)
+        references.extend(label_str)
 
-Accuracy_score = pred_label/total
-final_score = cer_metric.compute()
+    exact_match = sum(p == r for p, r in zip(predictions, references)) / len(references)
 
-print("Character error rate on clear test set:", final_score)
-print("Exact match rate (Exp Rate) on clear test set:", Accuracy_score)
+    # Samples with an empty ground truth carry no character to score, and would
+    # otherwise make the CER blow up, so they are left out of it.
+    scored = [(p, r) for p, r in zip(predictions, references) if r.strip()]
+    skipped = len(references) - len(scored)
+    if skipped:
+        print(f"{skipped} sample(s) with an empty ground truth excluded from the CER.")
+    cer = jiwer.cer([r for _, r in scored], [p for p, _ in scored])
 
-
-
-test_dataset = IAMDataset(root_dir= output_folder_2 + 'images_test/',
-                           df=test_df_noise,
-                           processor=processor)
-cer_metric = load_metric("cer")
-from torch.utils.data import DataLoader
-
-test_dataloader = DataLoader(test_dataset, batch_size=1)
-batch = next(iter(test_dataloader))
-for k,v in batch.items():
-  print(k, v.shape)
-
-labels = batch["labels"]
-labels[labels == -100] = processor.tokenizer.pad_token_id
-label_str = processor.batch_decode(labels, skip_special_tokens=True)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_TrOCR.to(device)
+    print(f"Character error rate on {name} test set:", cer)
+    print(f"Exact match rate (Exp Rate) on {name} test set:", exact_match)
+    return cer, exact_match
 
 
-print("Running evaluation...")
+evaluate(
+    IAMDataset(root_dir=output_folder + '2014/', df=test_df, processor=processor),
+    "clear",
+)
 
-total = 0
-pred_label = 0
-
-for batch in tqdm(test_dataloader):
-    # predict using generate
-    pixel_values = batch["pixel_values"].to(device)
-    outputs = model_TrOCR.generate(pixel_values)
-    # decode
-    pred_str = processor.batch_decode(outputs, skip_special_tokens=True)
-    labels = batch["labels"]
-    labels[labels == -100] = processor.tokenizer.pad_token_id
-    label_str = processor.batch_decode(labels, skip_special_tokens=True)
-
-    if pred_str == label_str:
-        pred_label += 1
-    total += 1
-
-    cer_metric.add_batch(predictions=pred_str, references=label_str)
-
-Accuracy_score = pred_label/total
-final_score = cer_metric.compute()
-
-
-print("Character error rate on noised test set:", final_score)
-print("Exact match rate (Exp Rate) on noised test set:", Accuracy_score)
+evaluate(
+    IAMDataset(root_dir=output_folder_2 + 'images_test/', df=test_df_noise, processor=processor),
+    "noised",
+)

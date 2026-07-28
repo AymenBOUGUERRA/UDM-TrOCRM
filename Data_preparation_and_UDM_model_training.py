@@ -1,39 +1,26 @@
 import os
-import sys
 import random
+
 import patoolib
-
-
-
-
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 from tqdm import tqdm
 import tensorflow as tf
 
-
-
+from udm_common import UDM_CHECKPOINT_PATH, UDM_MODEL_PATH
 
 Input = tf.keras.layers.Input
-Dense = tf.keras.layers.Dense
-Activation = tf.keras.layers.Activation
 Dropout = tf.keras.layers.Dropout
 Model = tf.keras.models.Model
 Conv2D = tf.keras.layers.Conv2D
 Conv2DTranspose = tf.keras.layers.Conv2DTranspose
 MaxPooling2D = tf.keras.layers.MaxPooling2D
 concatenate = tf.keras.layers.concatenate
-Lambda = tf.keras.layers.Lambda
+Rescaling = tf.keras.layers.Rescaling
 BatchNormalization = tf.keras.layers.BatchNormalization
 EarlyStopping = tf.keras.callbacks.EarlyStopping
 ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint
-
-
-
-
-
 
 
 rar_file_path = 'data_unet_grey_interline_noise.rar'
@@ -131,7 +118,7 @@ X_train, Y_train = load_and_preprocess_train_data(train_ids)
 
 
 
-ix = random.randint(0, len(train_ids))
+ix = random.randrange(len(train_ids))
 plt.subplot(1, 2, 1)
 plt.imshow(X_train[ix], cmap='gray')
 print(X_train[ix].shape)
@@ -140,8 +127,10 @@ plt.imshow(Y_train[ix], cmap='gray')
 plt.show()
 
 # Build the model
-inputs = tf.keras.layers.Input((IMG_HEIGHT, IMG_WIDTH, 1))
-s = tf.keras.layers.Lambda(lambda x: x / 255)(inputs)
+inputs = Input((IMG_HEIGHT, IMG_WIDTH, 1))
+# `Rescaling` instead of a `Lambda`: lambdas are not serialisable, so a saved
+# model built with one cannot be reloaded without `safe_mode=False`.
+s = Rescaling(1.0 / 255)(inputs)
 
 # Contraction path
 c1 = Conv2D(32, (7, 7), activation='relu', kernel_initializer='he_normal', padding='same') (s)
@@ -209,12 +198,14 @@ c9 = BatchNormalization()(c9)
 c9 = Dropout(0.07) (c9)
 c9 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same') (c9)
 c9 = BatchNormalization()(c9)
-outputs = tf.keras.layers.Conv2D(1, (1, 1), activation='sigmoid')(c9)
+outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
 
 
 
 model = Model(inputs=[inputs], outputs=[outputs])
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+# Binary cross-entropy: the output is a single sigmoid channel (background vs.
+# ink), not a distribution over several classes.
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 early_stopping = EarlyStopping(
     monitor='val_loss',
@@ -224,11 +215,15 @@ early_stopping = EarlyStopping(
 )
 
 model_checkpoint = ModelCheckpoint(
-    'model_unet_checkpoint_savedmodel',  # Save the best model with this name
+    UDM_CHECKPOINT_PATH,  # Save the best model with this name
     monitor='val_loss',
     save_best_only=True,
     verbose=1
 )
+
+# Keras 3 no longer infers the missing channel axis, so it is added explicitly.
+X_train = X_train[..., np.newaxis]
+Y_train = Y_train[..., np.newaxis]
 
 # Train the model
 history = model.fit(
@@ -240,5 +235,6 @@ history = model.fit(
     callbacks=[early_stopping, model_checkpoint]
 )
 
-# Save the entire model in the SavedModel format
-model.save("my_models_savedmodel")
+# Save the entire model. Keras 3 dropped the SavedModel directory format in
+# favour of a single `.keras` archive.
+model.save(UDM_MODEL_PATH)

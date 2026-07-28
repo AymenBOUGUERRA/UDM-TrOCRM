@@ -12,7 +12,10 @@ This work is part of the IMEDiL (Inclusive Mathematics Education based on Digita
 [![GitHub Issues](https://img.shields.io/github/issues/AymenBOUGUERRA/UDM-TrOCRM)](https://github.com/AymenBOUGUERRA/UDM-TrOCRM/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/AymenBOUGUERRA/UDM-TrOCRM)](https://github.com/AymenBOUGUERRA/UDM-TrOCRM/pulls)
 
-Brief description of your project.
+A two-stage pipeline for reading handwritten mathematical equations off scanned
+student textbooks: a U-Net de-noising model (UDM) first removes the paper grid
+and the scanning noise, then a fine-tuned TrOCR model transcribes the cleaned
+image into LaTeX.
 
 ## Table of Contents
 
@@ -37,19 +40,30 @@ a model to help solve the problem.
 
 ### Prerequisites
 
-Python 3.9.
+Python 3.11 to 3.13.
 
 An Nvidia GPU will be needed.
 
+An archive tool able to read `.rar` files (`unrar`, `7z` or `bsdtar`) must be on
+the `PATH`, since the datasets are extracted with `patool`.
+
 ### Installation
 
-- Glone this project:
+- Clone this project:
 
 ```git clone https://github.com/AymenBOUGUERRA/UDM-TrOCRM.git```
 
-- Install the dependencies and prepare the environment
+- Create an environment and install the dependencies
 
-```pip install -r requirements.txt```
+```
+python -m venv .venv
+source .venv/bin/activate      # .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
+
+`requirements.txt` only lists the direct dependencies; pip resolves the rest,
+including the CUDA runtime packages that match your TensorFlow and PyTorch
+builds.
 
 
 - Datasets:
@@ -76,9 +90,20 @@ directory of the project, do not extract them, it will be done automatically whe
 - (optional) Extract the TrOCR checkpoint in a file so that you have ```UDM-TrOCRM/TrOCRM_models/checkpoint-6500/*```.
 
 
+Note on the U-Net model format: TensorFlow 2.16 and later ship Keras 3, which
+saves models as a single ```udm_model.keras``` archive instead of a SavedModel
+directory. Training now writes that file; the downloadable pre-trained model is
+still a SavedModel directory and is loaded through ```TFSMLayer``` when no
+```udm_model.keras``` is present. Both paths are handled by
+```load_udm_model()``` in ```udm_common.py```.
+
+
 ## Usage
 
 Argparse was not used in these scripts, you can directly run the needed script without any arguments.
+
+- You can generate the noisy/clean image pairs used to train the U-Net with the ```create_noisy_dataset.py``` script.
+
 
 - You can train the models using the ```Data_preparation_and_UDM_model_training.py``` and ```TrOCRM_training.py``` scripts.
 
@@ -88,7 +113,8 @@ Warning: TrOCR models have a large volume, make use to have the necessary space 
 - You can test the models using the ```UDM_testing.py``` and ```TrOCRM_test.py``` scripts.
 
 
-- You can compute the scores the TrOCRM model using the ```TrOCRM_score.py``` script.
+- You can compute the scores of the TrOCRM model using the ```TrOCRM_score.py``` script. It reports the
+Exact Match rate and the Character Error Rate, the latter computed with ```jiwer```.
 
 ## Results
 

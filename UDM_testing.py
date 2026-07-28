@@ -1,17 +1,14 @@
 import os
 import sys
-import patoolib
 import random
 
-
-
+import patoolib
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
-from PIL import Image
 from tqdm import tqdm
-import tensorflow as tf
+
+from udm_common import load_udm_model
 
 
 rar_file_path = 'data_unet_grey_interline_noise.rar'
@@ -113,19 +110,20 @@ def load_and_preprocess_test_data(test_ids):
 X_test, Y_test = load_and_preprocess_test_data(test_ids)
 
 
-model = tf.keras.models.load_model('my_models_savedmodel')
+model = load_udm_model()
 
 # Predict on train, val, and test
-
-preds_test = model.predict(X_test, verbose=1)
+# The channel axis is added explicitly: Keras 3 no longer infers it.
+preds_test = model.predict(X_test[..., np.newaxis], verbose=1)
 # Threshold predictions
 preds_test_t = (preds_test > 0.5).astype(np.uint8)
 
 
 
 
-# Choose 7 random indices
-random_indices = random.sample(range(len(preds_test_t)), 7)
+# Choose 7 random indices. Each figure shows the sample and its two successors,
+# so the last two indices are excluded.
+random_indices = random.sample(range(len(preds_test_t) - 2), 7)
 
 # Display input, ground truth, and predicted masks for 10 random samples
 for ix in random_indices:

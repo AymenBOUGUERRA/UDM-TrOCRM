@@ -1,18 +1,18 @@
 import os
-import sys
-import patoolib
-import random
-import pandas as pd
 
-from sklearn.model_selection import train_test_split
+import patoolib
+import pandas as pd
 from sklearn.utils import shuffle
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
-from transformers import TrOCRProcessor, Seq2SeqTrainer, Seq2SeqTrainingArguments, VisionEncoderDecoderModel, default_data_collator
-
-
-
+from transformers import (
+    TrOCRProcessor,
+    Seq2SeqTrainer,
+    Seq2SeqTrainingArguments,
+    VisionEncoderDecoderModel,
+    default_data_collator,
+)
 
 rar_file_path = 'TrOCRM_clear_data.rar'
 output_folder = 'TrOCRM_clear_data/'
@@ -115,17 +115,20 @@ model.config.pad_token_id = processor.tokenizer.pad_token_id
 # make sure vocab size is set correctly
 model.config.vocab_size = model.config.decoder.vocab_size
 
-# set beam search parameters
-model.config.eos_token_id = processor.tokenizer.sep_token_id
-model.config.max_length = 24 # origin 64
-model.config.early_stopping = True
-model.config.no_repeat_ngram_size = 3
-model.config.length_penalty = 2.0
-model.config.num_beams = 4
+# set beam search parameters. They belong to `generation_config`: generation
+# parameters stored on `model.config` are ignored by recent transformers.
+model.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
+model.generation_config.pad_token_id = processor.tokenizer.pad_token_id
+model.generation_config.eos_token_id = processor.tokenizer.sep_token_id
+model.generation_config.max_length = 24 # origin 64
+model.generation_config.early_stopping = True
+model.generation_config.no_repeat_ngram_size = 3
+model.generation_config.length_penalty = 2.0
+model.generation_config.num_beams = 4
 
 training_args = Seq2SeqTrainingArguments(
     predict_with_generate=True,
-    evaluation_strategy="steps",
+    eval_strategy="steps",  # renamed from `evaluation_strategy`
     per_device_train_batch_size=3, #origin 8
     per_device_eval_batch_size=16, #origin 8
     fp16=False,
@@ -141,7 +144,7 @@ torch.cuda.empty_cache()
 # instantiate trainer
 trainer = Seq2SeqTrainer(
     model=model,
-    tokenizer=processor.feature_extractor,
+    processing_class=processor.image_processor,  # replaces the `tokenizer` argument
     args=training_args,
     #compute_metrics=compute_metrics,
     train_dataset=train_dataset,

@@ -1,23 +1,18 @@
 import os
-import sys
-import patoolib
 import random
+
+import patoolib
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import torch
 from torch.utils.data import Dataset
-from PIL import Image
 import cv2
-from transformers import TrOCRProcessor, Seq2SeqTrainer, Seq2SeqTrainingArguments, VisionEncoderDecoderModel, default_data_collator
-import tensorflow as tf
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 import numpy as np
-from tqdm import tqdm
-from datasets import load_metric
 
-import re
-from itertools import product
+from udm_common import load_udm_model, resize_and_pad
+
 # Extract the data if not already done
 rar_file_path = 'TrOCRM_clear_data.rar'
 output_folder = 'TrOCRM_clear_data/'
@@ -107,58 +102,21 @@ model_TrOCR = VisionEncoderDecoderModel.from_pretrained("TrOCRM_models/checkpoin
 model_TrOCR.config.decoder_start_token_id = processor.tokenizer.cls_token_id
 model_TrOCR.config.pad_token_id = processor.tokenizer.pad_token_id
 model_TrOCR.config.vocab_size = model_TrOCR.config.decoder.vocab_size
+model_TrOCR.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
+model_TrOCR.generation_config.pad_token_id = processor.tokenizer.pad_token_id
 
-UDM = tf.keras.models.load_model('my_models_savedmodel')
+UDM = load_udm_model()
 # Function to perform OCR on an image
 def ocr_image(src_img):
     pixel_values = processor(images=src_img, return_tensors="pt").pixel_values
     generated_ids = model_TrOCR.generate(pixel_values)
     return processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
-def resizeAndPad(img, size, padColor):
-    h, w = img.shape[:2]
-    sh, sw = size
-
-    # interpolation method
-    if h > sh or w > sw: # shrinking image
-        interp = cv2.INTER_AREA
-
-    else: # stretching image
-        interp = cv2.INTER_CUBIC
-
-    # aspect ratio of image
-    aspect = float(w)/h
-    saspect = float(sw)/sh
-
-    if (saspect > aspect) or ((saspect == 1) and (aspect <= 1)):  # new horizontal image
-        new_h = sh
-        new_w = np.round(new_h * aspect).astype(int)
-        pad_horz = float(sw - new_w) / 2
-        pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
-        pad_top, pad_bot = 0, 0
-
-    elif (saspect < aspect) or ((saspect == 1) and (aspect >= 1)):  # new vertical image
-        new_w = sw
-        new_h = np.round(float(new_w) / aspect).astype(int)
-        pad_vert = float(sh - new_h) / 2
-        pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
-        pad_left, pad_right = 0, 0
-
-    # set pad color
-    if len(img.shape) is 3 and not isinstance(padColor, (list, tuple, np.ndarray)): # color image but only one color provided
-        padColor = [padColor]*3
-
-    # scale and pad
-    scaled_img = cv2.resize(img, (new_w, new_h), interpolation=interp)
-    scaled_img = cv2.copyMakeBorder(scaled_img, pad_top, pad_bot, pad_left, pad_right, borderType=cv2.BORDER_CONSTANT, value=padColor)
-    return scaled_img
 
 
-
-
-
-
-random_indices = random.sample(range(len(eval_dataset)), 5)
+# The same indices are reused on the clear and on the noisy test set, so they
+# have to be valid in both.
+random_indices = random.sample(range(min(len(eval_dataset), len(eval_dataset_noise))), 5)
 
 # Create a figure with subplots
 fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(17, 15))
@@ -211,18 +169,18 @@ for i, ix in enumerate(random_indices):
     axes[i, 0].imshow(image)
     axes[i, 0].set_title('Input Image')
 
-    resized_image = resizeAndPad(image, (256, 256), 255)
+    resized_image = resize_and_pad(image, (256, 256), 255)
     image_gray = cv2.cvtColor(resized_image, cv2.COLOR_RGB2GRAY)
     _, image_black = cv2.threshold(image_gray, 70, 255, cv2.THRESH_BINARY)
-    image_array = np.zeros((32, 256, 256), dtype=np.uint8)
-    image_array[0] = image_black
+    # A batch of one, with an explicit channel axis (required by Keras 3).
+    image_array = image_black[np.newaxis, :, :, np.newaxis]
     image_array = UDM.predict(image_array, verbose=1)
     image_array_th = (image_array > 0.5).astype(np.uint8)
-    axes[i, 1].imshow(image_array_th[0], cmap='gray')
+    axes[i, 1].imshow(np.squeeze(image_array_th[0]), cmap='gray')
     axes[i, 1].set_title('Input Image cleaned with UDM')
 
     # Display model output
-    image = cv2.cvtColor(image_array_th[0]*255, cv2.COLOR_GRAY2RGB)
+    image = cv2.cvtColor(np.squeeze(image_array_th[0]) * 255, cv2.COLOR_GRAY2RGB)
     model_output = ocr_image(image)
     axes[i, 2].text(0.5, 0.5, model_output, ha='center', va='center', fontsize=17)
     axes[i, 2].axis('off')
