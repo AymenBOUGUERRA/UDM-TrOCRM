@@ -52,8 +52,9 @@ def process_image(img, grid, filename, index):
     
     _, black_and_white_image_original = cv2.threshold(img, 240, 255, cv2.THRESH_BINARY)
     
-    cv2.imwrite(f'{output_directory_noisy}/{index}.png', black_and_white_image)
-    cv2.imwrite(f'{output_directory_clean}/{index}.png', black_and_white_image_original)
+    png_params = [cv2.IMWRITE_PNG_COMPRESSION, 9]
+    cv2.imwrite(f'{output_directory_noisy}/{index}.png', black_and_white_image, png_params)
+    cv2.imwrite(f'{output_directory_clean}/{index}.png', black_and_white_image_original, png_params)
     print(f"Processed {filename} and saved as {index}.png")
 
 os.makedirs(output_directory_noisy, exist_ok=True)
