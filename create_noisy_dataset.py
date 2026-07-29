@@ -59,9 +59,10 @@ def process_image(img, grid, filename, index):
 os.makedirs(output_directory_noisy, exist_ok=True)
 os.makedirs(output_directory_clean, exist_ok=True)
 
-# Iterate over files in the input directory
+# Iterate over files in the input directory. Sorted, so that a given input
+# image always maps to the same output index.
 index = 0
-for filename in os.listdir(input_directory):
+for filename in sorted(os.listdir(input_directory)):
     rand = random.randint(2, 5)
     filepath = os.path.join(input_directory, filename)
     img = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
